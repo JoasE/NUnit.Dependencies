@@ -13,6 +13,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/JoasE/NUnit.Dependencies</PackageProjectUrl>
     <RepositoryUrl>https://github.com/JoasE/NUnit.Dependencies</RepositoryUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
