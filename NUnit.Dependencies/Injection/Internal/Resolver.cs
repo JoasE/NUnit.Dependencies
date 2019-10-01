@@ -6,7 +6,7 @@ using System.Linq;
 namespace NUnit.Dependencies.Injection.Internal
 {
     using NUnit.Dependencies;
-    using NUnit.Dependencies.AssemblyInfo.Extensions.Internal;
+    using NUnit.Dependencies.Reflection.Extensions.Internal;
     using NUnit.Engine;
     using NUnit.Engine.Extensibility;
     using NUnit.Framework.Interfaces;
@@ -27,14 +27,14 @@ namespace NUnit.Dependencies.Injection.Internal
         /// <summary>
         /// Gets a service for the specified fixture's scope
         /// </summary>
-        /// <param name="fixtureType">The type of the fixture which is requesting a service</param>
+        /// <param name="fixtureConstructor">The constructor of the fixture</param>
         /// <param name="serviceType">The type of the service the fixture is requesting</param>
         /// <returns>The requested service instance or <see langword="null"/> if it was not found</returns>
-        public static object GetService(ITypeInfo fixtureType, Type serviceType)
+        public static object GetService(ConstructorInfo fixtureConstructor, Type serviceType)
         {
-            var serviceProvider = GetServiceProvider(fixtureType.Assembly);
+            var serviceProvider = GetServiceProvider(fixtureConstructor.DeclaringType.Assembly);
 
-            var scope = FixtureScopes.GetOrAdd(fixtureType.Type.AssemblyQualifiedName, (_) => new FixtureScope(serviceProvider.CreateScope()));
+            var scope = FixtureScopes.GetOrAdd(fixtureConstructor.GetNunitName(), (_) => new FixtureScope(serviceProvider.CreateScope()));
 
             return scope.GetService(serviceType);
         }
@@ -111,7 +111,14 @@ namespace NUnit.Dependencies.Injection.Internal
             if (node.Name == "test-suite" && node.GetAttribute("type") == "TestFixture")
             {
                 // Dispose scope for test fixture
-                var classType = Assembly.GetType(node.GetAttribute("fullname"));
+                var classType = Assembly.GetType(node.GetAttribute("classname"));
+
+                // Make sure the class is in the assembly, and not in another one
+                if (classType == null)
+                {
+                    return;
+                }
+
                 FixtureScopes.TryGetValue(classType.AssemblyQualifiedName, out var value);
                 if (value != null)
                 {
@@ -123,11 +130,17 @@ namespace NUnit.Dependencies.Injection.Internal
             {
                 // Dispose scope for test case
                 var classType = Assembly.GetType(node.GetAttribute("classname"));
+
+                // Make sure the class is in the assembly, and not in another one
+                if (classType == null)
+                {
+                    return;
+                }
+
                 FixtureScopes.TryGetValue(classType.AssemblyQualifiedName, out var value);
-                var method = classType.GetMethod(node.GetAttribute("name"));
                 if (value != null)
                 {
-                    value.Dispose(method.GetNunitName());
+                    value.Dispose(node.GetAttribute("name"));
                 }
             }
         }

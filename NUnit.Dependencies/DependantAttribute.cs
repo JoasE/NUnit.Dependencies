@@ -33,7 +33,7 @@ namespace NUnit.Dependencies
                 var arguments = new List<object>();
                 foreach (var parameter in constructor.GetParameters())
                 {
-                    var argument = Resolver.GetService(typeInfo, parameter.ParameterType);
+                    var argument = Resolver.GetService(constructor, parameter.ParameterType);
                     if (argument != null)
                     {
                         arguments.Add(argument);
