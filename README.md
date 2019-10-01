@@ -143,3 +143,7 @@ public class Pong : DependencyFixture<string>
 ## Conflicting behaviour
 
 The `DependantAttribute` has conflicting behaviour with the Parameterized Tests in NUnit. You can not use the NUnit.Dependencies dependency injection in the same test method or test fixture constructor.
+
+## Installation
+
+https://www.nuget.org/packages/NUnit.Dependencies/
