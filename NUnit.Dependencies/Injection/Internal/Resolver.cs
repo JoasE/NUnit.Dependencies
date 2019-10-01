@@ -105,7 +105,7 @@ namespace NUnit.Dependencies.Injection.Internal
             var xml = new XmlDocument();
             xml.LoadXml(report);
 
-            var node = xml.FirstChild;
+            var node = (XmlElement)xml.FirstChild;
 
             // Check if the event is the end of a test fixture.
             if (node.Name == "test-suite" && node.GetAttribute("type") == "TestFixture")
