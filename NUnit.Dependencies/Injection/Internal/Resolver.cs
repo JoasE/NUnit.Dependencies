@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 
-[assembly: InternalsVisibleTo("NUnit.Dependencies.Tests")]
 namespace NUnit.Dependencies.Injection.Internal
 {
     using NUnit.Dependencies;

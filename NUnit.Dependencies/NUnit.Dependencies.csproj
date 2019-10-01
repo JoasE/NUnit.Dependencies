@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>nunit dependencies.pfx</AssemblyOriginatorKeyFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>JoasE</Authors>
+    <Product>NUnit.Dependencies</Product>
+    <Description>An NUnit extension for writing dependant tests using dependency injection.</Description>
+    <Copyright>Copyright 2019 JoasE</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/JoasE/NUnit.Dependencies</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JoasE/NUnit.Dependencies</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +24,10 @@
   <ItemGroup>
     <None Update="NUnit.Dependencies.addins">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 
