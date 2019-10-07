@@ -4,12 +4,22 @@ using System.Threading.Tasks;
 
 namespace NUnit.Dependencies
 {
+    public interface IExecuteable
+    {
+        void Execute();
+    }
+
+    public interface IDependencyFixture<T> : IExecuteable
+    {
+        T Result { get; }   
+    }
+
     /// <summary>
     /// An <see cref="DependantAttribute"/> <see cref="DependencyAttribute"/> which tests at least the happy path, and which result can be used from another test.
     /// </summary>
     /// <typeparam name="T">The result of the happy path of this action.</typeparam>
     [Dependant, Dependency]
-    public abstract class DependencyFixture<T>
+    public abstract class DependencyFixture<T> : IDependencyFixture<T>
     {
         private T resultCache;
 
@@ -22,17 +32,22 @@ namespace NUnit.Dependencies
             {
                 if (resultCache == null)
                 {
-                    try
-                    {
-                        resultCache = TestHappyPath();
-                    }
-                    catch (Exception e)
-                    {
-                        Assert.Ignore("A dependant action failed: " + e.ToString());
-                    }
+                    Execute();
                 }
 
                 return resultCache;
+            }
+        }
+
+        public void Execute()
+        {
+            try
+            {
+                resultCache = TestHappyPath();
+            }
+            catch (Exception e)
+            {
+                Assert.Ignore("A dependant action failed: " + e.ToString());
             }
         }
 
@@ -50,7 +65,7 @@ namespace NUnit.Dependencies
     }
 
     [Dependant, Dependency]
-    public abstract class AsyncDependencyFixture<T>
+    public abstract class AsyncDependencyFixture<T> : IDependencyFixture<T>
     {
         /*private Task<T> resultCache;
 
@@ -88,25 +103,30 @@ namespace NUnit.Dependencies
             {
                 if (resultCache == null)
                 {
-                    try
-                    {
-                        var task = TestHappyPath();
-                        task.Wait();
-
-                        if (task.Exception != null)
-                        {
-                            throw task.Exception;
-                        }
-
-                        resultCache = task.Result;
-                    }
-                    catch (Exception e)
-                    {
-                        Assert.Ignore("A dependant action failed: " + e.ToString());
-                    }
+                    Execute();
                 }
 
                 return resultCache;
+            }
+        }
+
+        public void Execute()
+        {
+            try
+            {
+                var task = TestHappyPath();
+                task.Wait();
+
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+
+                resultCache = task.Result;
+            }
+            catch (Exception e)
+            {
+                Assert.Ignore("A dependant action failed: " + e.ToString());
             }
         }
 

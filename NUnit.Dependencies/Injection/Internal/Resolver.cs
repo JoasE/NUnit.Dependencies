@@ -2,7 +2,9 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("NUnit.Dependencies.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001009924cadb7b255676f18b88cc0fb7cab169191b62b24e70523c9d7fc4991db03534516473d4d13312daba6591c19e3b9e4d8ed542024cdaa694a25b10a04789c122da0ff6d395e3f0e4c96c0704e596113d77f4192dc390bc3e9234b9d2775fda75857dc02e3c9818f4abccf5aca912bcf8326d522c7a9e02d2f7f54aaac307bb")]
 namespace NUnit.Dependencies.Injection.Internal
 {
     using NUnit.Dependencies;
