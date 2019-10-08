@@ -18,7 +18,7 @@ namespace NUnit.Dependencies
         private readonly string _containsInvalidTypes;
 
         public bool ExecuteInSetup { get; } = false;
-        public Type[] ExecuteInSetupTypes { get; } = new Type[0];
+        public Type[] ExecuteInSetupTypes { get; set; } = new Type[0];
 
         public DependantAttribute(bool executeInSetup = false)
         {
