@@ -6,6 +6,7 @@ using NUnit.Framework.Internal.Builders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace NUnit.Dependencies
 {
@@ -17,14 +18,29 @@ namespace NUnit.Dependencies
     {
         private readonly string _containsInvalidTypes;
 
+        /// <summary>
+        /// A value indicating whether the types injected into the constructor should be executed immediately, whether or not they are actually used. 
+        /// </summary>
         public bool ExecuteInSetup { get; } = false;
+
+        /// <summary>
+        /// Any types of <see cref="IExecuteable"/>s which should be executed immediately, whether or not they are injected or actually used. 
+        /// </summary>
         public Type[] ExecuteInSetupTypes { get; set; } = new Type[0];
 
+        /// <summary>
+        /// Specifies the test fixture or method uses dependency injection.
+        /// </summary>
+        /// <param name="executeInSetup">A value indicating whether the types injected into the constructor should be executed immediately, whether or not they are actually used. </param>
         public DependantAttribute(bool executeInSetup = false)
         {
             ExecuteInSetup = executeInSetup;
         }
 
+        /// <summary>
+        /// Specifies the test fixture or method uses dependency injection.
+        /// </summary>
+        /// <param name="executeInSetup">Any types of <see cref="IExecuteable"/>s which should be executed immediately, whether or not they are injected or actually used. </param>
         public DependantAttribute(params Type[] executeInSetup)
         {
             ExecuteInSetupTypes = executeInSetup;
@@ -38,11 +54,6 @@ namespace NUnit.Dependencies
                     break;
                 }
             }
-        }
-
-        protected bool ShouldExecute(Type dependecyFixture)
-        {
-            return ExecuteInSetup || ExecuteInSetupTypes.Contains(dependecyFixture);
         }
 
         #region IFixtureBuilder2
@@ -72,7 +83,7 @@ namespace NUnit.Dependencies
                 }
 
                 var fixture = new NUnitTestFixtureBuilder().BuildFrom(typeInfo, filter, new TestFixtureData(arguments.ToArray()));
-                CheckApplyExecuteInSetup(fixture);
+                CheckApplyExecuteInSetup(fixture, constructor);
 
                 yield return fixture;
             }
@@ -103,27 +114,62 @@ namespace NUnit.Dependencies
 
         #endregion
 
-        protected void CheckApplyExecuteInSetup(Test test)
+        private void CheckApplyExecuteInSetup(Test test, ConstructorInfo constructor = null)
         {
+            // Check if there where any errors in the declaration of this attribute
             if (_containsInvalidTypes != null)
             {
                 test.MakeInvalid(_containsInvalidTypes);
                 return;
             }
 
-            foreach (var argument in test.Arguments)
+            // Execute the injected arguments if specified
+            if (this.ExecuteInSetup)
             {
-                if (ShouldExecute(argument.GetType())) {
-                    try
+                foreach (var argument in test.Arguments)
+                {
+                    ExecuteFor(argument, test);
+                }
+            }
+
+            // Execute other specified types
+            foreach (var executeType in this.ExecuteInSetupTypes)
+            {
+                // don't execute any arguments that have already been executed
+                if (this.ExecuteInSetup)
+                {
+                    if (test.Arguments.Any(x => x.GetType() == executeType))
                     {
-                        ((IExecuteable)argument).Execute();
-                    }
-                    catch (IgnoreException e)
-                    {
-                        test.RunState = RunState.Ignored;
-                        test.Properties.Add(PropertyNames.SkipReason, e.Message);
+                        continue;
                     }
                 }
+
+                // Get the executable from the dependency injection
+                object executable;
+                if (constructor == null)
+                {
+                    executable = Resolver.GetService(test.Method, executeType);
+                }
+                else
+                {
+                    executable = Resolver.GetService(constructor, executeType);
+                }
+                
+                // Execute it
+                ExecuteFor(executable, test);
+            }
+        }
+
+        private void ExecuteFor(object argument, Test test)
+        {
+            try
+            {
+                ((IExecuteable)argument).Execute();
+            }
+            catch (IgnoreException e)
+            {
+                test.RunState = RunState.Ignored;
+                test.Properties.Add(PropertyNames.SkipReason, e.Message);
             }
         }
     }
