@@ -51,7 +51,7 @@ namespace NUnit.Dependencies.Tests.Dependant
 
         public T[] GetCustomAttributes<T>(bool inherit) where T : class
         {
-            return type.GetCustomAttributes(typeof(T)).Cast<T>().ToArray();
+            return type.GetCustomAttributes(typeof(T), inherit).Cast<T>().ToArray();
         }
 
         public string GetDisplayName()
@@ -129,7 +129,7 @@ namespace NUnit.Dependencies.Tests.Dependant
 
         public T[] GetCustomAttributes<T>(bool inherit) where T : class
         {
-            return method.GetCustomAttributes().Where(x => x is T).Cast<T>().ToArray();
+            return method.GetCustomAttributes(inherit).Where(x => x is T).Cast<T>().ToArray();
         }
 
         public Type[] GetGenericArguments()

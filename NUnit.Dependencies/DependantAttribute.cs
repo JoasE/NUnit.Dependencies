@@ -13,7 +13,7 @@ namespace NUnit.Dependencies
     /// <summary>
     /// Specifies the test fixture or method uses dependency injection.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class DependantAttribute : NUnitAttribute, IFixtureBuilder2, ITestBuilder
     {
         private readonly string _containsInvalidTypes;
@@ -21,12 +21,18 @@ namespace NUnit.Dependencies
         /// <summary>
         /// A value indicating whether the types injected into the constructor should be executed immediately, whether or not they are actually used. 
         /// </summary>
-        public bool ExecuteInSetup { get; } = false;
+        public bool ExecuteInSetup { get; set; } = false;
 
         /// <summary>
-        /// Any types of <see cref="IExecuteable"/>s which should be executed immediately, whether or not they are injected or actually used. 
+        /// Any types of <see cref="IExecuteable"/>s which should be executed immediately, whether or not they are injected or actually used.
+        /// Configurations of this property are inherited by any deriving test class with the <see cref="DependantAttribute"/> applied unless <see cref="Inherit"/> is set to <see langword="false"/>.
         /// </summary>
-        public Type[] ExecuteInSetupTypes { get; set; } = new Type[0];
+        public Type[] ExecuteInSetupTypes { get; private set; } = new Type[0];
+
+        /// <summary>
+        /// A value indicating whether the types specified in <see cref="ExecuteInSetupTypes"/> are inherited by any deriving test class with the <see cref="DependantAttribute"/> applied.
+        /// </summary>
+        public bool Inherit { get; set; } = true;
 
         /// <summary>
         /// Specifies the test fixture or method uses dependency injection.
@@ -70,6 +76,8 @@ namespace NUnit.Dependencies
 
         private IEnumerable<TestSuite> GetTestSuite(ITypeInfo typeInfo, IPreFilter filter)
         {
+            InheritAttributes(typeInfo);
+
             foreach (var constructor in typeInfo.Type.GetConstructors())
             {
                 var arguments = new List<object>();
@@ -95,6 +103,8 @@ namespace NUnit.Dependencies
 
         public IEnumerable<TestMethod> BuildFrom(IMethodInfo method, Test suite)
         {
+            InheritAttributes(method);
+
             var arguments = new List<object>();
             foreach (var parameter in method.MethodInfo.GetParameters())
             {
@@ -113,6 +123,27 @@ namespace NUnit.Dependencies
         }
 
         #endregion
+
+        private void InheritAttributes(IReflectionInfo test)
+        {
+            var otherAttributes = test.GetCustomAttributes<DependantAttribute>(true);
+
+            var newSetupTypes = new List<Type>(this.ExecuteInSetupTypes);
+            foreach (var otherAttribute in otherAttributes)
+            {
+                if (otherAttribute.Inherit)
+                {
+                    foreach (var otherSetupType in otherAttribute.ExecuteInSetupTypes)
+                    {
+                        if (!newSetupTypes.Contains(otherSetupType))
+                        {
+                            newSetupTypes.Add(otherSetupType);
+                        }
+                    }
+                }
+            }
+            ExecuteInSetupTypes = newSetupTypes.ToArray();
+        }
 
         private void CheckApplyExecuteInSetup(Test test, ConstructorInfo constructor = null)
         {
