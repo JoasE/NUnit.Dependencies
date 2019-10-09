@@ -21,7 +21,7 @@ namespace NUnit.Dependencies
         /// <summary>
         /// A value indicating whether the types injected into the constructor should be executed immediately, whether or not they are actually used. 
         /// </summary>
-        public bool ExecuteInSetup { get; set; } = false;
+        public bool ExecuteInSetup { get; set; } = true;
 
         /// <summary>
         /// Any types of <see cref="IExecuteable"/>s which should be executed immediately, whether or not they are injected or actually used.
@@ -38,7 +38,7 @@ namespace NUnit.Dependencies
         /// Specifies the test fixture or method uses dependency injection.
         /// </summary>
         /// <param name="executeInSetup">A value indicating whether the types injected into the constructor should be executed immediately, whether or not they are actually used. </param>
-        public DependantAttribute(bool executeInSetup = false)
+        public DependantAttribute(bool executeInSetup = true)
         {
             ExecuteInSetup = executeInSetup;
         }
